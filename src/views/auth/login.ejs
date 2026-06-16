@@ -1,0 +1,43 @@
+<%- include('../partials/header', { pageTitle: 'Accedi' }) %>
+<%- include('../partials/navbar') %>
+
+<main class="flex-1 flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-sm">
+    <div class="bg-white rounded-xl shadow-xl p-8 border border-orange-50">
+      <h1 class="text-2xl font-bold text-gray-900 mb-6 text-center">Accedi a Oniria</h1>
+
+      <%- include('../partials/flash') %>
+
+      <form method="POST" action="/auth/login" class="space-y-4">
+
+        <div>
+          <label class="form-label" for="username">Username</label>
+          <input type="text" id="username" name="username" autocomplete="username"
+            class="form-input<% if (fieldErrors.username) { %> border-red-400<% } %>"
+            value="<%= typeof formData !== 'undefined' && formData.username ? formData.username : '' %>"
+            required autofocus>
+          <% if (fieldErrors.username) { %>
+            <p class="text-red-500 text-xs mt-1"><%= fieldErrors.username %></p>
+          <% } %>
+        </div>
+
+        <div>
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" name="password" autocomplete="current-password"
+            class="form-input<% if (fieldErrors.password) { %> border-red-400<% } %>"
+            required>
+          <% if (fieldErrors.password) { %>
+            <p class="text-red-500 text-xs mt-1"><%= fieldErrors.password %></p>
+          <% } %>
+        </div>
+
+        <button type="submit" class="btn-primary w-full text-center mt-2">Accedi</button>
+      </form>
+
+      <p class="text-center text-sm text-gray-500 mt-6">
+        Non hai un account?
+        <a href="/auth/registra" class="text-brand-primary hover:underline font-medium">Registrati</a>
+      </p>
+    </div>
+  </div>
+</main>

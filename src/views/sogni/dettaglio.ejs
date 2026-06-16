@@ -1,0 +1,110 @@
+<%- include('../partials/header', { pageTitle: sogno.titolo }) %>
+<%- include('../partials/navbar') %>
+
+<main class="container mx-auto px-4 py-8 max-w-3xl">
+  <%- include('../partials/flash') %>
+
+  <div class="flex items-center gap-3 mb-4 text-sm">
+    <a href="/sogni" class="text-gray-400 hover:text-brand-primary transition">← I miei sogni</a>
+  </div>
+
+  <!-- Dettaglio sogno principale -->
+  <article class="bg-white rounded-xl shadow-md p-8 mb-6 border border-orange-50">
+    <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
+      <h1 class="text-2xl font-bold text-gray-900"><%= sogno.titolo %></h1>
+      <span class="badge-intensita-<%= sogno.intensita %> text-sm px-3 py-1">Intensità <%= sogno.intensita %>/5</span>
+    </div>
+
+    <div class="flex flex-wrap gap-4 text-sm text-gray-400 mb-6">
+      <span>📅 <%= formatDate(sogno.data_sogno) %></span>
+      <span><%= sogno.pubblico ? '🌍 Pubblico' : '🔒 Privato' %></span>
+      <span class="text-gray-200">|</span>
+      <span>Aggiunto il <%= formatDate(sogno.created_at) %></span>
+    </div>
+
+    <!-- Descrizione -->
+    <div class="text-gray-700 leading-relaxed mb-6 whitespace-pre-wrap text-sm"><%= sogno.descrizione %></div>
+
+    <!-- Tag -->
+    <% if (tag && tag.length > 0) { %>
+      <div class="mb-4">
+        <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Tag</p>
+        <div class="flex flex-wrap gap-1.5">
+          <% tag.forEach(function(t) { %>
+            <a href="/sogni?tag=<%= encodeURIComponent(t.nome) %>" class="tag-chip hover:bg-orange-200 transition">
+              <%= t.nome %>
+            </a>
+          <% }); %>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- Emozioni -->
+    <% if (emozioni && emozioni.length > 0) { %>
+      <div class="mb-6">
+        <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Emozioni</p>
+        <div class="flex flex-wrap gap-1.5">
+          <% emozioni.forEach(function(e) { %>
+            <a href="/sogni?emozione=<%= encodeURIComponent(e.nome) %>" class="emo-chip hover:bg-amber-100 transition">
+              <%= e.nome %>
+            </a>
+          <% }); %>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- Azioni -->
+    <div class="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
+      <a href="/sogni/<%= sogno.id %>/modifica" class="btn-secondary text-sm">Modifica</a>
+      <form method="POST" action="/sogni/<%= sogno.id %>/elimina"
+        onsubmit="return confirm('Eliminare definitivamente questo sogno?')">
+        <button type="submit" class="btn-danger text-sm px-4 py-2">Elimina</button>
+      </form>
+    </div>
+  </article>
+
+  <!-- Sogni correlati -->
+  <% if (correlati && correlati.length > 0) { %>
+    <section class="mb-6">
+      <h2 class="text-base font-semibold text-gray-200 mb-3">Sogni correlati</h2>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <% correlati.forEach(function(c) { %>
+          <a href="/sogni/<%= c.id %>"
+            class="bg-white rounded-xl shadow p-4 hover:shadow-md transition block border border-orange-50">
+            <h3 class="font-medium text-gray-800 text-sm mb-1"><%= c.titolo %></h3>
+            <p class="text-gray-400 text-xs"><%= formatDate(c.data_sogno) %></p>
+            <% if (c.tag && c.tag.length > 0) { %>
+              <div class="flex flex-wrap gap-1 mt-2">
+                <% c.tag.forEach(function(t) { %><span class="tag-chip"><%= t.nome %></span><% }); %>
+              </div>
+            <% } %>
+          </a>
+        <% }); %>
+      </div>
+    </section>
+  <% } %>
+
+  <!-- Suggerimenti di correlazione -->
+  <% if (suggerimenti && suggerimenti.length > 0) { %>
+    <section class="highlight-box p-6">
+      <h2 class="text-base font-semibold text-brand-primary mb-1">Sogni simili suggeriti</h2>
+      <p class="text-xs text-gray-400 mb-4">Questi sogni condividono almeno 2 tag con questo. Vuoi collegarli?</p>
+      <div class="space-y-3">
+        <% suggerimenti.forEach(function(s) { %>
+          <div class="bg-night-nav rounded-lg p-4 flex items-center justify-between gap-4 border border-night-border">
+            <div>
+              <a href="/sogni/<%= s.id %>" class="font-medium text-sm text-white hover:text-brand-primary transition">
+                <%= s.titolo %>
+              </a>
+              <p class="text-xs text-gray-500 mt-0.5"><%= s.tag_comuni %> tag in comune</p>
+            </div>
+            <form method="POST" action="/sogni/<%= sogno.id %>/correla">
+              <input type="hidden" name="correlato_id" value="<%= s.id %>">
+              <button type="submit" class="btn-primary text-xs px-3 py-1">Collega</button>
+            </form>
+          </div>
+        <% }); %>
+      </div>
+    </section>
+  <% } %>
+</main>

@@ -1,0 +1,146 @@
+<%- include('../partials/header', { pageTitle: 'Le mie statistiche' }) %>
+<%- include('../partials/navbar') %>
+
+<main class="container mx-auto px-4 py-8 max-w-5xl">
+  <%- include('../partials/flash') %>
+
+  <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-white">Le mie statistiche</h1>
+      <p class="text-sm text-gray-400 mt-1">Riepilogo reale del periodo selezionato, senza grafici simulati.</p>
+    </div>
+
+    <form method="GET" action="/statistiche" id="form-filtri" class="bg-white rounded-xl shadow p-4 border border-orange-50 min-w-[100px]">
+      <label class="form-label" for="f-mese">Mese</label>
+      <select id="f-mese" name="mese" class="form-input">
+        <% filtro.opzioni.forEach(function(opzione) { %>
+          <option value="<%= opzione.value %>" <%= opzione.value === filtro.mese ? 'selected' : '' %>><%= opzione.label %></option>
+        <% }); %>
+      </select>
+    </form>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-xl shadow p-5 text-center border border-orange-50">
+      <p class="text-3xl font-bold text-brand-primary"><%= riepilogo.totale %></p>
+      <p class="text-sm text-gray-500 mt-1">Sogni in <%= filtro.label %></p>
+    </div>
+    <div class="bg-white rounded-xl shadow p-5 text-center border border-orange-50">
+      <p class="text-3xl font-bold text-brand-primary-dark"><%= riepilogo.intensitaMedia || '—' %></p>
+      <p class="text-sm text-gray-500 mt-1">Intensità media</p>
+    </div>
+    <div class="bg-white rounded-xl shadow p-5 text-center border border-orange-50">
+      <p class="text-3xl font-bold text-amber-500"><%= riepilogo.tagUsati %></p>
+      <p class="text-sm text-gray-500 mt-1">Tag usati</p>
+    </div>
+    <div class="bg-white rounded-xl shadow p-5 text-center border border-orange-50">
+      <p class="text-3xl font-bold text-gray-600"><%= riepilogo.emozioniRegistrate %></p>
+      <p class="text-sm text-gray-500 mt-1">Emozioni registrate</p>
+    </div>
+  </div>
+
+  <% if (!haDati) { %>
+    <section class="bg-white rounded-xl shadow p-8 border border-orange-50 text-center">
+      <h2 class="text-lg font-semibold text-gray-800">Nessun sogno in <%= filtro.label %></h2>
+      <p class="text-sm text-gray-500 mt-2">Seleziona un altro mese oppure aggiungi nuovi sogni per popolare le statistiche.</p>
+      <a href="/sogni/nuovo" class="btn-primary mt-4">Nuovo sogno</a>
+    </section>
+  <% } else { %>
+    <div class="grid lg:grid-cols-2 gap-8">
+
+      <section class="bg-white rounded-xl shadow p-6 border border-orange-50">
+        <h2 class="text-base font-semibold text-gray-800 mb-5">Momenti di <%= filtro.label %></h2>
+        <div class="space-y-4 text-sm text-gray-600">
+          <% if (giornoIntenso) { %>
+            <div class="rounded-lg bg-orange-50 px-4 py-3">
+              <p class="text-xs font-semibold uppercase tracking-wide text-orange-700 mb-1">Giorno più intenso</p>
+              <p>
+                <span class="font-medium text-gray-800"><%= formatDate(giornoIntenso.data_sogno) %></span>
+                con intensità media <span class="font-medium text-amber-600"><%= giornoIntenso.media %></span>
+                su <span class="font-medium text-gray-800"><%= giornoIntenso.totale %></span>
+                <%= giornoIntenso.totale === 1 ? 'sogno' : 'sogni' %>.
+              </p>
+            </div>
+          <% } %>
+
+          <% if (sognoRecente) { %>
+            <div class="rounded-lg bg-gray-50 px-4 py-3">
+              <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Sogno più recente</p>
+              <p>
+                <a href="/sogni/<%= sognoRecente.id %>" class="font-medium text-brand-primary hover:underline"><%= sognoRecente.titolo %></a>
+                del <span class="font-medium text-gray-800"><%= formatDate(sognoRecente.data_sogno) %></span>.
+              </p>
+            </div>
+          <% } %>
+
+          <div class="rounded-lg bg-amber-50 px-4 py-3">
+            <p class="text-xs font-semibold uppercase tracking-wide text-amber-700 mb-1">Visibilità del mese</p>
+            <p>
+              <span class="font-medium text-gray-800"><%= visibilita.privati %></span> privati,
+              <span class="font-medium text-gray-800"><%= visibilita.pubblici %></span> pubblici.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-white rounded-xl shadow p-6 border border-orange-50">
+        <h2 class="text-base font-semibold text-gray-800 mb-5">Tag più usati in <%= filtro.label %></h2>
+        <% if (tagFrequenti.length === 0) { %>
+          <p class="text-gray-400 text-sm">Nessun tag nel periodo selezionato.</p>
+        <% } else { %>
+          <ol class="space-y-3">
+            <% tagFrequenti.forEach(function(t, index) { %>
+              <li class="flex items-center justify-between gap-4 border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
+                <div class="flex items-center gap-3 min-w-0">
+                  <span class="text-xs text-gray-400 w-5 flex-shrink-0"><%= index + 1 %>.</span>
+                  <a href="/sogni?tag=<%= encodeURIComponent(t.nome) %>" class="text-sm text-brand-primary hover:underline truncate" title="<%= t.nome %>">
+                    <%= t.nome %>
+                  </a>
+                </div>
+                <span class="tag-chip flex-shrink-0"><%= t.conteggio %></span>
+              </li>
+            <% }); %>
+          </ol>
+        <% } %>
+      </section>
+
+      <section class="bg-white rounded-xl shadow p-6 border border-orange-50">
+        <h2 class="text-base font-semibold text-gray-800 mb-5">Emozioni più frequenti in <%= filtro.label %></h2>
+        <% if (emozioniFrequenti.length === 0) { %>
+          <p class="text-gray-400 text-sm">Nessuna emozione nel periodo selezionato.</p>
+        <% } else { %>
+          <ol class="space-y-3">
+            <% emozioniFrequenti.forEach(function(e, index) { %>
+              <li class="flex items-center justify-between gap-4 border-b border-gray-100 pb-3 last:border-b-0 last:pb-0">
+                <div class="flex items-center gap-3 min-w-0">
+                  <span class="text-xs text-gray-400 w-5 flex-shrink-0"><%= index + 1 %>.</span>
+                  <a href="/sogni?emozione=<%= encodeURIComponent(e.nome) %>" class="text-sm text-amber-600 hover:underline truncate" title="<%= e.nome %>">
+                    <%= e.nome %>
+                  </a>
+                </div>
+                <span class="emo-chip flex-shrink-0"><%= e.conteggio %></span>
+              </li>
+            <% }); %>
+          </ol>
+        <% } %>
+      </section>
+
+      <section class="bg-white rounded-xl shadow p-6 border border-orange-50">
+        <h2 class="text-base font-semibold text-gray-800 mb-5">Nuovi tag di <%= filtro.label %></h2>
+        <% if (tagEmergenti.length === 0) { %>
+          <p class="text-gray-400 text-sm">Nessun nuovo tag in questo mese.</p>
+        <% } else { %>
+          <div class="flex flex-wrap gap-2">
+            <% tagEmergenti.forEach(function(t) { %>
+              <a href="/sogni?tag=<%= encodeURIComponent(t.nome) %>" class="tag-chip hover:bg-orange-200 transition text-sm px-3 py-1">
+                <%= t.nome %>
+              </a>
+            <% }); %>
+          </div>
+          <p class="text-xs text-gray-400 mt-3">Tag usati per la prima volta nel mese selezionato.</p>
+        <% } %>
+      </section>
+
+    </div>
+  <% } %>
+</main>

@@ -1,0 +1,125 @@
+<%- include('../partials/header', { pageTitle: 'Nuovo sogno' }) %>
+<%- include('../partials/navbar') %>
+
+<main class="container mx-auto px-4 py-8 max-w-2xl">
+  <%- include('../partials/flash') %>
+
+  <div class="flex items-center gap-3 mb-6">
+    <a href="/sogni" class="text-gray-400 hover:text-gray-600 transition text-sm">← I miei sogni</a>
+  </div>
+
+  <h1 class="text-2xl font-bold text-gray-800 mb-6">Nuovo sogno</h1>
+
+  <div class="bg-white rounded-xl shadow-md p-8">
+    <form method="POST" action="/sogni" class="space-y-5">
+
+      <!-- Titolo -->
+      <div>
+        <label class="form-label" for="titolo">Titolo <span class="text-red-400">*</span></label>
+        <input type="text" id="titolo" name="titolo"
+          class="form-input<% if (fieldErrors.titolo) { %> border-red-400<% } %>"
+          value="<%= typeof formData !== 'undefined' && formData.titolo ? formData.titolo : '' %>"
+          maxlength="200" required autofocus>
+        <% if (fieldErrors.titolo) { %>
+          <p class="text-red-500 text-xs mt-1"><%= fieldErrors.titolo %></p>
+        <% } %>
+      </div>
+
+      <!-- Data e Intensità -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="form-label" for="data_sogno">Data del sogno <span class="text-red-400">*</span></label>
+          <input type="date" id="data_sogno" name="data_sogno"
+            class="form-input<% if (fieldErrors.data_sogno) { %> border-red-400<% } %>"
+            value="<%= typeof formData !== 'undefined' && formData.data_sogno ? formData.data_sogno : new Date().toISOString().split('T')[0] %>"
+            max="<%= new Date().toISOString().split('T')[0] %>" required>
+          <% if (fieldErrors.data_sogno) { %>
+            <p class="text-red-500 text-xs mt-1"><%= fieldErrors.data_sogno %></p>
+          <% } %>
+        </div>
+        <div>
+          <label class="form-label" for="intensita">Intensità (1-5) <span class="text-red-400">*</span></label>
+          <select id="intensita" name="intensita"
+            class="form-input<% if (fieldErrors.intensita) { %> border-red-400<% } %>" required>
+            <% [1,2,3,4,5].forEach(function(v) { %>
+              <option value="<%= v %>" <%= (typeof formData !== 'undefined' && formData.intensita == v) ? 'selected' : (v === 3 && (typeof formData === 'undefined' || !formData.intensita)) ? 'selected' : '' %>>
+                <%= v %> — <%= ['Lieve','Moderato','Vivido','Intenso','Estremo'][v-1] %>
+              </option>
+            <% }); %>
+          </select>
+          <% if (fieldErrors.intensita) { %>
+            <p class="text-red-500 text-xs mt-1"><%= fieldErrors.intensita %></p>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Descrizione -->
+      <div>
+        <label class="form-label" for="descrizione">Descrizione <span class="text-red-400">*</span></label>
+        <textarea id="descrizione" name="descrizione" rows="5"
+          class="form-input resize-y<% if (fieldErrors.descrizione) { %> border-red-400<% } %>"
+          required><%= typeof formData !== 'undefined' && formData.descrizione ? formData.descrizione : '' %></textarea>
+        <% if (fieldErrors.descrizione) { %>
+          <p class="text-red-500 text-xs mt-1"><%= fieldErrors.descrizione %></p>
+        <% } %>
+      </div>
+
+      <!-- Tag input con chip -->
+      <div>
+        <label class="form-label" for="tag-input-visible">Tag <span class="text-gray-400 font-normal">(max 10, separati da virgola o Invio)</span></label>
+        <!-- Input hidden che contiene il valore CSV inviato al server -->
+        <input type="hidden" id="tag" name="tag" value="<%= typeof formData !== 'undefined' && formData.tag ? formData.tag : '' %>">
+        <!-- Contenitore chips + input visibile -->
+        <div id="tag-chips-container" class="form-input min-h-[42px] flex flex-wrap gap-1.5 items-center cursor-text<% if (fieldErrors.tag) { %> border-red-400<% } %>">
+          <input type="text" id="tag-input-visible" placeholder="Aggiungi tag..."
+            class="outline-none text-sm flex-1 min-w-[100px] bg-transparent py-0.5"
+            list="tag-suggestions" autocomplete="off">
+          <datalist id="tag-suggestions">
+            <% tagDisponibili.forEach(function(t) { %><option value="<%= t.nome %>"><% }); %>
+          </datalist>
+        </div>
+        <% if (fieldErrors.tag) { %>
+          <p class="text-red-500 text-xs mt-1"><%= fieldErrors.tag %></p>
+        <% } %>
+      </div>
+
+      <!-- Emozioni (checkbox) -->
+      <div>
+        <label class="form-label">Emozioni</label>
+        <% if (fieldErrors.emozioni) { %>
+          <p class="text-red-500 text-xs mt-1 mb-2"><%= fieldErrors.emozioni %></p>
+        <% } %>
+        <div class="flex flex-wrap gap-2">
+          <% emozioniDisponibili.forEach(function(e) { %>
+            <%
+              const selezionata = typeof formData !== 'undefined' && formData.emozioni
+                ? (Array.isArray(formData.emozioni) ? formData.emozioni.includes(e.nome) : formData.emozioni === e.nome)
+                : false;
+            %>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" name="emozioni" value="<%= e.nome %>"
+                class="rounded border-gray-300 text-brand-primary focus:ring-brand-primary"
+                <%= selezionata ? 'checked' : '' %>>
+              <span class="text-sm text-gray-700"><%= e.nome %></span>
+            </label>
+          <% }); %>
+        </div>
+      </div>
+
+      <!-- Pubblico -->
+      <div class="flex items-center gap-3 py-2 border-t border-gray-100">
+        <input type="checkbox" id="pubblico" name="pubblico" value="on"
+          class="rounded border-gray-300 text-brand-primary focus:ring-brand-primary"
+          <%= (typeof formData !== 'undefined' && (formData.pubblico === 'on' || formData.pubblico === true)) ? 'checked' : '' %>>
+        <label for="pubblico" class="text-sm text-gray-700">
+          Rendi pubblico questo sogno <span class="text-gray-400">(visibile in forma anonima nella community)</span>
+        </label>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="btn-primary">Registra sogno</button>
+        <a href="/sogni" class="btn-secondary">Annulla</a>
+      </div>
+    </form>
+  </div>
+</main>

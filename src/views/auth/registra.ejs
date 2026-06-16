@@ -1,0 +1,78 @@
+<%- include('../partials/header', { pageTitle: 'Registrati' }) %>
+<%- include('../partials/navbar') %>
+
+<main class="flex-1 flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-md">
+    <div class="bg-white rounded-xl shadow-xl p-8 border border-orange-50">
+      <h1 class="text-2xl font-bold text-gray-900 mb-6 text-center">Crea il tuo account</h1>
+
+      <%- include('../partials/flash') %>
+
+      <form method="POST" action="/auth/registra" class="space-y-4">
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="form-label" for="username">Username</label>
+            <input type="text" id="username" name="username" autocomplete="username"
+              class="form-input<% if (fieldErrors.username) { %> border-red-400<% } %>"
+              value="<%= typeof formData !== 'undefined' && formData.username ? formData.username : '' %>"
+              maxlength="30" required autofocus>
+            <% if (fieldErrors.username) { %>
+              <p class="text-red-500 text-xs mt-1"><%= fieldErrors.username %></p>
+            <% } %>
+          </div>
+
+          <div>
+            <label class="form-label" for="nome">Nome Completo</label>
+            <input type="text" id="nome" name="nome" autocomplete="name"
+              class="form-input<% if (fieldErrors.nome) { %> border-red-400<% } %>"
+              value="<%= typeof formData !== 'undefined' && formData.nome ? formData.nome : '' %>"
+              maxlength="100" required>
+            <% if (fieldErrors.nome) { %>
+              <p class="text-red-500 text-xs mt-1"><%= fieldErrors.nome %></p>
+            <% } %>
+          </div>
+        </div>
+
+        <div>
+          <label class="form-label" for="email">Email</label>
+          <input type="email" id="email" name="email" autocomplete="email"
+            class="form-input<% if (fieldErrors.email) { %> border-red-400<% } %>"
+            value="<%= typeof formData !== 'undefined' && formData.email ? formData.email : '' %>"
+            required>
+          <% if (fieldErrors.email) { %>
+            <p class="text-red-500 text-xs mt-1"><%= fieldErrors.email %></p>
+          <% } %>
+        </div>
+
+        <div>
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" name="password" autocomplete="new-password"
+            class="form-input<% if (fieldErrors.password) { %> border-red-400<% } %>"
+            minlength="8" required>
+          <% if (fieldErrors.password) { %>
+            <p class="text-red-500 text-xs mt-1"><%= fieldErrors.password %></p>
+          <% } %>
+          <p class="text-gray-400 text-xs mt-1">Minimo 8 caratteri</p>
+        </div>
+
+        <div>
+          <label class="form-label" for="bio">Bio <span class="text-gray-400 font-normal">(facoltativa)</span></label>
+          <textarea id="bio" name="bio" rows="2"
+            class="form-input resize-none<% if (fieldErrors.bio) { %> border-red-400<% } %>"
+            maxlength="500"><%= typeof formData !== 'undefined' && formData.bio ? formData.bio : '' %></textarea>
+          <% if (fieldErrors.bio) { %>
+            <p class="text-red-500 text-xs mt-1"><%= fieldErrors.bio %></p>
+          <% } %>
+        </div>
+
+        <button type="submit" class="btn-primary w-full text-center mt-2">Crea account</button>
+      </form>
+
+      <p class="text-center text-sm text-gray-500 mt-6">
+        Hai già un account?
+        <a href="/auth/login" class="text-brand-primary hover:underline font-medium">Accedi</a>
+      </p>
+    </div>
+  </div>
+</main>
